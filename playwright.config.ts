@@ -1,21 +1,11 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright Configuration for Backend API Testing
+ * Playwright configuration for unit testing
  * See https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './src/tests',
-
-  /* Maximum time one test can run for */
-  timeout: 30 * 1000,
-
-  expect: {
-    /**
-     * Maximum time expect() should wait for the condition to be met.
-     */
-    timeout: 5000
-  },
+  testDir: './tests',
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -32,30 +22,27 @@ export default defineConfig({
   /* Reporter to use */
   reporter: [
     ['html'],
-    ['json', { outputFile: 'test-results.json' }],
-    ['junit', { outputFile: 'test-results.xml' }],
+    ['list'],
+    ['json', { outputFile: 'test-results/results.json' }],
   ],
 
   /* Shared settings for all the projects below */
   use: {
+    /* Base URL to use in actions like `await page.goto('/')` */
+    // baseURL: 'http://127.0.0.1:3000',
+
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
-
-    /* Screenshot on failure */
-    screenshot: 'only-on-failure',
-
-    /* Video on failure */
-    video: 'retain-on-failure',
-
-    /* Base URL to use in actions like `await page.goto('/')` */
-    // baseURL: process.env.API_BASE_URL || 'http://localhost:3000',
   },
 
-  /* Configure projects for API testing */
+  /* Configure projects for major browsers */
   projects: [
     {
-      name: 'api-tests',
-      testMatch: '**/*.spec.ts',
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
+
+  /* Folder for test artifacts such as screenshots, videos, traces, etc. */
+  outputDir: 'test-results/',
 });
