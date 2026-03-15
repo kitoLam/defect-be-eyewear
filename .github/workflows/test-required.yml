@@ -7,6 +7,16 @@ on:
     branches:
       - master
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+  pull_request_target:
+    branches:
+      - master
+      - main
+    types: [opened, synchronize, reopened]
 
 jobs:
   api-tests:
@@ -40,13 +50,15 @@ jobs:
 
       - name: Upload Test Report (if failed)
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
-          name: test-results
+          name: pr-test-results-${{ github.event.pull_request.number }}
           path: |
             playwright-report/
             test-results/
-          retention-days: 7
+            test-results.json
+            test-results.xml
+          retention-days: 14
 
       - name: Comment PR on Failure
         if: failure()
@@ -61,14 +73,16 @@ jobs:
 
               Tests trong \`src/tests/api.spec.ts\` đã fail.
 
-              **PR này KHÔNG THỂ merge cho đến khi tất cả tests PASS.**
+              **⛔ PR này KHÔNG THỂ merge cho đến khi tất cả tests PASS.**
 
-              📊 Xem chi tiết lỗi trong **Actions** tab → **Artifacts** → **test-results**
+              📊 Xem chi tiết lỗi trong **Actions** tab → **Artifacts** → **pr-test-results-${{ context.issue.number }}**
 
               🔧 Để fix:
               1. Chạy tests locally: \`npm test\`
-              2. Fix các test đang fail
-              3. Push code mới lên branch này
+              2. Xem report chi tiết: \`npm run test:report\`
+              3. Debug nếu cần: \`npm run test:debug\`
+              4. Fix các test đang fail
+              5. Push code mới lên branch này
 
               ---
               🤖 Automated check by GitHub Actions`
@@ -87,7 +101,9 @@ jobs:
 
               All tests trong \`src/tests/api.spec.ts\` đã PASS thành công! 🎉
 
-              PR này có thể merge sau khi được review.
+              ✨ PR này có thể merge sau khi được review và approved.
+
+              📊 Test report có sẵn trong **Artifacts** (nếu cần xem chi tiết)
 
               ---
               🤖 Automated check by GitHub Actions`
