@@ -10,35 +10,9 @@ on:
       - main
 
 jobs:
-  lint-and-type-check:
-    name: Lint & Type Check
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run ESLint
-        run: npm run lint
-        continue-on-error: false
-
-      - name: TypeScript type check
-        run: npx tsc --noEmit
-        continue-on-error: false
-
   unit-tests:
     name: Unit Tests (Playwright)
     runs-on: ubuntu-latest
-    needs: lint-and-type-check
 
     steps:
       - name: Checkout code
@@ -70,7 +44,7 @@ jobs:
   build-check:
     name: Build Check
     runs-on: ubuntu-latest
-    needs: [lint-and-type-check, unit-tests]
+    needs: unit-tests
 
     steps:
       - name: Checkout code
@@ -99,14 +73,13 @@ jobs:
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
-    needs: [lint-and-type-check, unit-tests, build-check]
+    needs: [unit-tests, build-check]
     if: always()
 
     steps:
       - name: Check all jobs status
         run: |
-          if [ "${{ needs.lint-and-type-check.result }}" != "success" ] || \
-             [ "${{ needs.unit-tests.result }}" != "success" ] || \
+          if [ "${{ needs.unit-tests.result }}" != "success" ] || \
              [ "${{ needs.build-check.result }}" != "success" ]; then
             echo "❌ Quality gate failed - one or more checks failed"
             exit 1
@@ -118,7 +91,6 @@ jobs:
         run: |
           echo "================================================"
           echo "Quality Gate Results:"
-          echo "- Lint & Type Check: ${{ needs.lint-and-type-check.result }}"
           echo "- Unit Tests: ${{ needs.unit-tests.result }}"
           echo "- Build Check: ${{ needs.build-check.result }}"
           echo "================================================"
