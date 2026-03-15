@@ -1,0 +1,12 @@
+<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="1.5815010000000003">
+<testsuite name="api.spec.ts" timestamp="2026-03-15T08:07:45.898Z" hostname="api-tests" tests="4" failures="0" skipped="0" time="0.239" errors="0">
+<testcase name="API Health Checks › should return 200 on health endpoint" classname="api.spec.ts" time="0.061">
+</testcase>
+<testcase name="Authentication API › should reject unauthorized requests" classname="api.spec.ts" time="0.056">
+</testcase>
+<testcase name="Authentication API › should accept valid login credentials" classname="api.spec.ts" time="0.08">
+</testcase>
+<testcase name="Products API › should handle invalid product ID" classname="api.spec.ts" time="0.042">
+</testcase>
+</testsuite>
+</testsuites>

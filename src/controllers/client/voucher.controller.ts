@@ -1,0 +1,84 @@
+import { Request, Response } from 'express';
+import voucherClientService from '../../services/client/voucher.service';
+import { ApiResponse } from '../../utils/api-response';
+import { ValidateVoucherPayload } from '../../services/client/voucher.service';
+
+class VoucherClientController {
+    /**
+     * Get vouchers by clientId (Supabase)
+     */
+    getVouchersByClientId = async (req: Request, res: Response) => {
+        const clientId = req.params.clientId as string;
+        const result = await voucherClientService.getVouchersByClientId(clientId);
+        res.json(ApiResponse.success('Lấy danh sách voucher thành công!', result));
+    };
+
+    /**
+     * Get my vouchers
+     */
+    getMyVouchers = async (req: Request, res: Response) => {
+        const customerId = req.customer!.id;
+        const result = await voucherClientService.getMyVouchers(customerId);
+        res.json(
+            ApiResponse.success('Lấy danh sách voucher thành công!', result)
+        );
+    };
+
+    /**
+     * Validate voucher
+     */
+    validateVoucher = async (req: Request, res: Response) => {
+        const customerId = req.customer!.id;
+        const payload = req.body as ValidateVoucherPayload;
+        const result = await voucherClientService.validateVoucher(
+            customerId,
+            payload
+        );
+        res.json(ApiResponse.success('Voucher hợp lệ!', result));
+    };
+
+    /**
+     * Get available vouchers (public)
+     */
+    getAvailableVouchers = async (req: Request, res: Response) => {
+        const result = await voucherClientService.getAvailableVouchers();
+        res.json(
+            ApiResponse.success(
+                'Lấy danh sách vouchers khả dụng thành công!',
+                result
+            )
+        );
+    };
+
+    /**
+     * Assign voucher (Test)
+     */
+    assignVoucher = async (req: Request, res: Response) => {
+        const { customerId, voucherId, metadata } = req.body;
+        const result = await voucherClientService.assignVoucher(
+            customerId,
+            voucherId,
+            metadata
+        );
+        res.json(ApiResponse.success('Assign voucher success', result));
+    };
+
+    /**
+     * Claim voucher - Update status from WAITING_CLAIM to CLAIMED
+     */
+    claimVoucher = async (req: Request, res: Response) => {
+        const customerId = req.customer!.id;
+        const { voucherCode } = req.body;
+
+        if (!voucherCode) {
+            return res.status(400).json(
+                ApiResponse.error('Vui lòng cung cấp mã voucher')
+            );
+        }
+
+        const result = await voucherClientService.claimVoucher(customerId, voucherCode);
+        res.json(ApiResponse.success('Claim voucher thành công!', result));
+    };
+}
+
+export default new VoucherClientController();

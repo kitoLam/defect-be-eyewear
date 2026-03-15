@@ -1,0 +1,94 @@
+name: Required Tests Before Merge
+
+# Workflow này chạy khi có Pull Request vào master hoặc main
+# Nếu test FAIL thì sẽ CHẶN merge
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  api-tests:
+    name: API Tests (REQUIRED)
+    runs-on: ubuntu-latest
+
+    # Job này BẮT BUỘC phải pass
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run API Tests
+        run: npm test
+        env:
+          API_BASE_URL: http://localhost:5000
+          CI: true
+
+      - name: Upload Test Report (if failed)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: Comment PR on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ❌ API Tests Failed
+
+              Tests trong \`src/tests/api.spec.ts\` đã fail.
+
+              **PR này KHÔNG THỂ merge cho đến khi tất cả tests PASS.**
+
+              📊 Xem chi tiết lỗi trong **Actions** tab → **Artifacts** → **test-results**
+
+              🔧 Để fix:
+              1. Chạy tests locally: \`npm test\`
+              2. Fix các test đang fail
+              3. Push code mới lên branch này
+
+              ---
+              🤖 Automated check by GitHub Actions`
+            });
+
+      - name: Comment PR on Success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ✅ API Tests Passed
+
+              All tests trong \`src/tests/api.spec.ts\` đã PASS thành công! 🎉
+
+              PR này có thể merge sau khi được review.
+
+              ---
+              🤖 Automated check by GitHub Actions`
+            });
