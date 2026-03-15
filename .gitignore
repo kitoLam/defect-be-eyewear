@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
-package-lock.json
+# Note: Keep package-lock.json committed for consistent installs
+# Only ignore alternative lock files if not using them
 yarn.lock
 pnpm-lock.yaml
 
