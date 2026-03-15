@@ -1,8 +1,22 @@
 name: Required Tests Before Merge
 
-# Workflow này chạy khi có Pull Request vào master hoặc main
+# Workflow này chạy khi:
+# 1. Push code lên nhánh main
+# 2. Tạo Pull Request vào master hoặc main
 # Nếu test FAIL thì sẽ CHẶN merge
 on:
+  # Chạy khi push lên main
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+
+  # Chạy khi tạo Pull Request
   pull_request:
     branches:
       - master
@@ -12,6 +26,7 @@ on:
       - 'docs/**'
       - '.gitignore'
       - 'LICENSE'
+
   pull_request_target:
     branches:
       - master
@@ -61,7 +76,7 @@ jobs:
           retention-days: 14
 
       - name: Comment PR on Failure
-        if: failure()
+        if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -89,7 +104,7 @@ jobs:
             });
 
       - name: Comment PR on Success
-        if: success()
+        if: success() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
