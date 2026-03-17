@@ -1,6 +1,6 @@
 const numberStr = "0123456789";
 export const generateOrderCode = () => {
-  let OD = "OD";
+  let OD = "OD__";
   for (let i = 0; i < 3; i++) {
     OD += numberStr[Math.floor(Math.random() * numberStr.length)];
   }
