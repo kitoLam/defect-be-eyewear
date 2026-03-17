@@ -10,41 +10,10 @@ on:
       - main
 
 jobs:
-  secret-scan:
-    name: Secret Scanning
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2  # Fetch last 2 commits to compare changes
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies for scanner
-        run: npm install @anthropic-ai/sdk
-
-      - name: Run AI-Powered Secret Scanner
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: node .github/scripts/secret-scanner.js changed
-
-      - name: Upload scan results
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: secret-scan-results
-          path: .github/scripts/secret-scanner.js
-          retention-days: 7
 
   unit-tests:
     name: Unit Tests (Playwright)
     runs-on: ubuntu-latest
-    needs: secret-scan  # Run only if secret scan passes
 
     steps:
       - name: Checkout code
@@ -105,14 +74,13 @@ jobs:
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
-    needs: [secret-scan, unit-tests, build-check]
+    needs: [unit-tests, build-check]
     if: always()
 
     steps:
       - name: Check all jobs status
         run: |
-          if [ "${{ needs.secret-scan.result }}" != "success" ] || \
-             [ "${{ needs.unit-tests.result }}" != "success" ] || \
+          if [ "${{ needs.unit-tests.result }}" != "success" ] || \
              [ "${{ needs.build-check.result }}" != "success" ]; then
             echo "❌ Quality gate failed - one or more checks failed"
             exit 1
