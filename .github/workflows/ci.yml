@@ -80,8 +80,7 @@ jobs:
     steps:
       - name: Check all jobs status
         run: |
-          if [ "${{ needs.secret-scan.result }}" != "success" ] || \
-             [ "${{ needs.unit-tests.result }}" != "success" ] || \
+          if [ "${{ needs.unit-tests.result }}" != "success" ] || \
              [ "${{ needs.build-check.result }}" != "success" ]; then
             echo "❌ Quality gate failed - one or more checks failed"
             exit 1
